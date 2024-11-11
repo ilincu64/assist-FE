@@ -1,0 +1,28 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main      
+
+concurrency:
+  group: 'stage-${{ github.head_ref || github.ref_name }}'
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: internship2024-${{ vars.PROJECT }}-${{ vars.TEAM }}.dev.assist.ro
+          username: ubuntu
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            cd /var/www/frontend
+            git pull
+            /usr/bin/npm install
+            /usr/bin/npm run build
+            sudo service nginx restart
